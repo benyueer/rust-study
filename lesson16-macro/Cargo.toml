@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "declarative",
+  "attribute_macros",
+  "derive_macro",
+  "function_like_macro"
+]

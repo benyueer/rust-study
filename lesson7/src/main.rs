@@ -1,5 +1,6 @@
 mod generics;
 mod trait_s;
+mod lifetime;
 
 fn main() {
     generics::generics();

@@ -26,7 +26,7 @@ struct AlwaysEqual;
 
 struct Rectangle {
     width: i32,
-    height: i32
+    height: i32,
 }
 
 impl Rectangle {
