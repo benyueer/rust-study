@@ -121,7 +121,7 @@ mod test {
     }
 
     /**
-     * 42
+     * 42. 接雨水
      */
     pub fn trap(height: Vec<i32>) -> i32 {
         let mut res = 0;

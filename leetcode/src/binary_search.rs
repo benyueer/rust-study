@@ -3,7 +3,7 @@
  * 有序皆可二分
  * * 开闭原则
  * * 区间的变化
- * 
+ *
  * * 一般方法：
  * 确定搜索空间
  * 确定结果类型
@@ -84,8 +84,8 @@ mod test {
                 false => arr.len() - 1,
             };
 
-            while l>=0 && l <= r {
-                let mid = l + (r- l) / 2;
+            while l >= 0 && l <= r {
+                let mid = l + (r - l) / 2;
                 if arr[mid] > target || (lower && arr[mid] >= target) {
                     if mid == 0 {
                         match lower {
@@ -112,7 +112,11 @@ mod test {
 
         println!("{start} {end}");
 
-        if start <= end && end < nums.len().try_into().unwrap() && nums[start as usize] == target && nums[end as usize] == target {
+        if start <= end
+            && end < nums.len().try_into().unwrap()
+            && nums[start as usize] == target
+            && nums[end as usize] == target
+        {
             res = vec![start, end];
         }
         res
@@ -142,7 +146,7 @@ mod test {
 
         while l < r {
             let mid = l + (r - l) / 2;
-            if arr[mid] > arr[mid-1] && arr[mid] < arr[mid + 1] {
+            if arr[mid] > arr[mid - 1] && arr[mid] < arr[mid + 1] {
                 l = mid + 1;
             } else {
                 r = mid;
@@ -154,7 +158,7 @@ mod test {
 
     #[test]
     fn test_peak_index_in_mountain_array() {
-        let arr = vec![3,4,5,1];
+        let arr = vec![3, 4, 5, 1];
         let res = peak_index_in_mountain_array(arr);
         println!("{res}");
     }
@@ -164,8 +168,6 @@ mod test {
      */
     fn shortest_arr(arr: Vec<i32>, s: i32) -> i32 {
         let mut res = 1;
-
-
 
         res
     }
@@ -188,7 +190,41 @@ mod test {
      * 33-搜索旋转排序数组
      */
     pub fn search(nums: Vec<i32>, target: i32) -> i32 {
-        0
+        let (mut l, mut r) = (0, nums.len()-1);
+
+        while l <= r {
+            let mid = l + (r - l) / 2;
+
+            if mid > nums.len() - 1 {
+                return -1;
+            }
+
+            if nums[mid] == target {
+                return mid.try_into().unwrap();
+            }
+
+            if nums[mid] < nums[l] {
+                if nums[mid] < target && target <= nums[r] {
+                    l = mid + 1;
+                } else {
+                    r = mid - 1;
+                }
+            } else {
+                if nums[l] <= target && nums[mid] > target {
+                    r = mid - 1;
+                } else {
+                    l = mid + 1;
+                }
+            }
+        }
+
+        -1  
+    }
+
+    #[test]
+    fn test_search() {
+        let res = search(vec![3, 1], 2);
+        println!("{res}");
     }
 
     /**

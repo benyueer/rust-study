@@ -311,4 +311,33 @@ mod test {
         let res = eat_apple(apples, shelf_life);
         println!("{res}");
     }
+
+    /**
+     * 20. 有效的括号
+     */
+    pub fn is_valid(s: String) -> bool {
+        let mut queue = vec![];
+        let map = std::collections::HashMap::from([('{', '}'), ('[', ']'), ('(', ')')]);
+
+        for i in s.chars() {
+            if queue.is_empty() {
+                queue.push(i);
+            } else {
+                let last = queue.last().unwrap();
+                if i == *map.get(last).unwrap_or(&'q') {
+                    queue.pop();
+                } else {
+                    queue.push(i);
+                }
+            }
+        }
+
+        queue.len() == 0
+    }
+
+    #[test]
+    fn test_is_valid() {
+        let res = is_valid("{([)])}".to_string());
+        println!("{res}");
+    }
 }

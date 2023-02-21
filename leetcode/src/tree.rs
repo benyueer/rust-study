@@ -448,6 +448,89 @@ mod test {
         p: Option<Rc<RefCell<TreeNode>>>,
         q: Option<Rc<RefCell<TreeNode>>>,
     ) -> Option<Rc<RefCell<TreeNode>>> {
-        None
+        if root.is_none() {
+            return None;
+        }
+
+        let root_val = root.as_ref().unwrap().borrow().val;
+        let p_val = p.as_ref().unwrap().borrow().val;
+        let q_val = q.as_ref().unwrap().borrow().val;
+
+        if root_val == p_val || root_val == q_val {
+            return root;
+        }
+
+        let in_left = lowest_common_ancestor(
+            root.as_ref().unwrap().borrow_mut().left.take(),
+            p.clone(),
+            q.clone(),
+        );
+        let in_right =
+            lowest_common_ancestor(root.as_ref().unwrap().borrow_mut().right.take(), p, q);
+
+        if in_left.is_some() && in_right.is_some() {
+            return root;
+        } else if in_left.is_some() {
+            return in_left;
+        } else if in_right.is_some() {
+            return in_right;
+        } else {
+            return None;
+        }
+    }
+
+    /**
+     * 124. 二叉树中的最大路径和
+     */
+    pub fn max_path_sum(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        let mut root = root;
+        let mut res = i32::MIN;
+
+        fn dfs(root: &mut Option<Rc<RefCell<TreeNode>>>, res: &mut i32) -> i32 {
+            if root.is_none() {
+                return 0;
+            }
+            let l_val = dfs(&mut root.as_ref().unwrap().borrow_mut().left.clone(), res).max(0);
+            let r_val = dfs(&mut root.as_ref().unwrap().borrow_mut().right.clone(), res).max(0);
+
+            *res = *res.max(&mut (root.as_ref().unwrap().borrow_mut().val + l_val + r_val));
+            root.as_ref().unwrap().borrow_mut().val += std::cmp::max(l_val, r_val);
+
+            return root.as_ref().unwrap().borrow_mut().val;
+        }
+
+        dfs(&mut root, &mut res);
+
+        res
+    }
+
+    #[test]
+    fn test_max_path_sum() {
+        let mut root = Some(Rc::new(RefCell::new(TreeNode {
+            val: 1,
+            left: Some(Rc::new(RefCell::new(TreeNode {
+                val: 2,
+                left: None,
+                right: None,
+            }))),
+            right: Some(Rc::new(RefCell::new(TreeNode {
+                val: 3,
+                left: None,
+                right: None,
+            }))),
+        })));
+
+        max_path_sum(root);
+
+        // println!("{:?}", root);
+    }
+
+    /**
+     * 199. 二叉树的右视图
+     */
+    pub fn right_side_view(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
+        let mut res = vec![];
+
+        res
     }
 }
