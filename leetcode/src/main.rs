@@ -1,5 +1,8 @@
+mod array;
 mod binary_search;
 mod queue;
+mod search_backtrack;
+mod sliding_window;
 mod stack;
 mod tree;
 mod two_pointer;
@@ -10,6 +13,22 @@ fn main() {
 
 #[cfg(test)]
 mod test {
+    // 1. 两数之和
+    pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
+        let mut map = std::collections::HashMap::<i32, usize>::new();
+
+        for (i, n) in nums.into_iter().enumerate() {
+            match map.get(&(target - n)) {
+                Some(&s) => return vec![s as i32, i as i32],
+                None => {}, 
+            }
+
+            map.insert(n, i);
+        }
+
+        vec![]
+    }
+
     // [1694] 重新格式化电话号码
     pub fn reformat_number(number: String) -> String {
         let mut res = String::from("");
@@ -63,7 +82,7 @@ mod test {
     /**
      * 206. 反转链表
      */
-    // #[derive(PartialEq, Eq, Clone, Debug)]
+    #[derive(PartialEq, Eq, Clone, Debug)]
     pub struct ListNode {
         pub val: i32,
         pub next: Option<Box<ListNode>>,
@@ -182,7 +201,7 @@ mod test {
     }
 
     use std::cell::RefCell;
-    use std::collections::VecDeque;
+    use std::collections::{HashMap, VecDeque};
     use std::rc::Rc;
     #[derive(Debug, PartialEq, Eq)]
     pub struct TreeNode {
@@ -590,8 +609,307 @@ mod test {
 
     #[test]
     fn test_majority_element() {
-        let nums = vec![2,2,1,1,1,2,2];
+        let nums = vec![2, 2, 1, 1, 1, 2, 2];
         let res = majority_element(nums);
         println!("{res}");
+    }
+
+    /**
+     * 647. 回文子串
+     */
+    pub fn count_substrings(s: String) -> i32 {
+        let mut dp = vec![vec![false; s.len()]; s.len()];
+        let mut res = 0;
+
+        for i in 0..s.len() {
+            for j in 0..=i {
+                if s[i..=i] == s[j..=j] && (i - j < 2 || dp[j + 1][i - 1]) {
+                    dp[j][i] = true;
+                    res += 1;
+                }
+            }
+        }
+
+        res
+    }
+
+    #[test]
+    fn test_count_substrings() {
+        let s = "qweewqwe".to_string();
+        let res = count_substrings(s);
+        println!("{res}");
+    }
+
+    /**
+     * 560. 和为 K 的子数组
+     */
+    pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
+        let mut map = HashMap::new();
+        let mut res = 0;
+        let mut pre_count = 0;
+
+        map.insert(0, 1);
+
+        for i in nums {
+            pre_count += i;
+
+            if map.get(&(&pre_count - k)).is_some() {
+                res += map.get(&(pre_count - k)).unwrap();
+            }
+
+            if map.get(&pre_count).is_some() {
+                let base = map.remove(&pre_count).unwrap();
+                map.insert(pre_count, base + 1);
+            } else {
+                map.insert(pre_count, 1);
+            }
+        }
+
+        println!("{map:?}");
+
+        res
+    }
+
+    #[test]
+    fn test_subarray_sum() {
+        let nums = vec![1, 2, 1, 2, 1, 2, 1];
+        let res = subarray_sum(nums, 3);
+        println!("{res}");
+    }
+
+    /**
+     * 198. 打家劫舍
+     */
+    pub fn rob(nums: Vec<i32>) -> i32 {
+        let mut dp = vec![0; nums.len() + 1];
+
+        dp[1] = nums[0];
+
+        for i in 2..=nums.len() {
+            dp[i] = dp[i - 1].max(dp[i - 2] + nums[i - 1])
+        }
+
+        dp[nums.len()]
+    }
+
+    /**
+     * 221. 最大正方形
+     */
+    pub fn maximal_square(matrix: Vec<Vec<char>>) -> i32 {
+        let mut res = 0;
+        let mut dp = vec![vec![0; matrix[0].len() + 1]; matrix.len() + 1];
+
+        for i in 1..=matrix.len() {
+            for j in 1..=matrix[i - 1].len() {
+                if matrix[i - 1][j - 1] == '1' {
+                    dp[i][j] = dp[i - 1][j - 1].min(dp[i - 1][j].min(dp[i][j - 1])) + 1;
+                    res = res.max(dp[i][j]);
+                }
+            }
+        }
+
+        res * res
+    }
+
+    #[test]
+    fn test_maximal_square() {
+        let matrix = vec![
+            vec!['1', '0', '1', '0', '0'],
+            vec!['1', '0', '1', '1', '1'],
+            vec!['1', '1', '1', '1', '1'],
+            vec!['1', '0', '0', '1', '0'],
+        ];
+
+        let res = maximal_square(matrix);
+
+        println!("{res}");
+    }
+
+    /**
+     * 剑指 Offer 14- I. 剪绳子
+     */
+    pub fn cutting_rope(n: i32) -> i32 {
+        let mut dp = vec![0; 1000];
+        dp[1] = 1;
+        dp[2] = 2;
+        dp[3] = 3;
+
+        match n {
+            2 => 1,
+            3 => 2,
+            n => {
+                for i in 4..=n {
+                    dp[i as usize] =
+                        ((2 * dp[i as usize - 2]).max(3 * dp[i as usize - 3])) % 1000000007;
+                }
+                dp[n as usize]
+            }
+        }
+    }
+
+    /**
+     * 剑指 Offer 14- II. 剪绳子 II
+     */
+    pub fn cutting_rope2(n: i32) -> i32 {
+        let mut n = n as i64;
+        let mut res: i64 = 1;
+
+        match n {
+            2 => 1,
+            3 => 2,
+            mut n => {
+                while n > 4 {
+                    res = res * 3;
+                    res = res % 1000000007;
+                    n -= 3;
+                }
+                ((res * n) % 1000000007) as i32
+            }
+        }
+    }
+
+    /**
+     * 64. 最小路径和
+     */
+    pub fn min_path_sum(grid: Vec<Vec<i32>>) -> i32 {
+        let mut grid = grid;
+
+        for i in 0..grid.len() {
+            for j in 0..grid[i].len() {
+                let mut base = i32::MAX;
+                if i - 1 >= 0 && i - 1 < grid.len() {
+                    base = base.min(grid[i - 1][j]);
+                }
+                if j - 1 >= 0 && j - 1 < grid[i].len() {
+                    base = base.min(grid[i][j - 1]);
+                }
+                if !(i == 0 && j == 0) {
+                    grid[i][j] += base;
+                }
+            }
+        }
+
+        println!("{grid:?}");
+
+        *grid.last().unwrap().last().unwrap()
+    }
+
+    /**
+     * 152. 乘积最大子数组
+     */
+    pub fn max_product(nums: Vec<i32>) -> i32 {
+        let (mut max, mut imax, mut imin) = (-i32::MAX, 1, 1);
+
+        for i in nums {
+            if i < 0 {
+                let mut temp = imax;
+                imax = imin;
+                imin = temp;
+            }
+
+            imax = i.max(i * imax);
+            imin = i.min(i * imin);
+
+            max = max.max(imax);
+        }
+
+        max
+    }
+
+    /**
+     * 134. 加油站
+     */
+    pub fn can_complete_circuit(gas: Vec<i32>, cost: Vec<i32>) -> i32 {
+        let mut res = 0;
+        let mut has = 0;
+        let mut cur_sum = 0;
+
+        for i in 0..gas.len() {
+            cur_sum += gas[i] - cost[i];
+            has += gas[i] - cost[i];
+
+            if cur_sum < 0 {
+                cur_sum = 0;
+                res = i as i32 + 1;
+            }
+        }
+
+        if has < 0 {
+            return -1;
+        }
+
+        res
+    }
+
+    /**
+     * 2. 两数相加
+     */
+    pub fn add_two_numbers(
+        l1: Option<Box<ListNode>>,
+        l2: Option<Box<ListNode>>,
+    ) -> Option<Box<ListNode>> {
+        let mut res = Some(Box::new(ListNode::new(0)));
+        let mut pre = res.as_mut();
+
+        let mut l1 = l1;
+        let mut l2 = l2;
+
+        let mut ad = 0;
+
+        while l1.is_some() || l2.is_some() {
+            let mut val = ad;
+
+            if let Some(n1) = l1 {
+                val += n1.val;
+                l1 = n1.next;
+            }
+
+            if let Some(n2) = l2 {
+                val += n2.val;
+                l2 = n2.next;
+            }
+
+            ad = val / 10;
+            val = val % 10;
+
+            let node = ListNode { val, next: None };
+
+            if let Some(cur) = pre {
+                cur.next = Some(Box::new(node));
+                pre = cur.next.as_mut();
+            }
+        }
+
+        if ad > 0 {
+            pre.unwrap().next = Some(Box::new(ListNode::new(1)));
+        }
+
+        let s = "aa".to_string();
+        let a = s.chars().enumerate();
+        a.for_each(|(a, c)| {});
+
+        res.unwrap().next
+    }
+
+    /**
+     * 14. 最长公共前缀
+     */
+    pub fn longest_common_prefix(strs: Vec<String>) -> String {
+        let mut res = 0;
+        let strs: Vec<Vec<char>> = strs.iter().map(|a| {
+            return a.chars().collect::<Vec<char>>();
+        }).collect();
+
+        loop {
+            let pre = strs[0][res];
+
+            for i in 1..strs.len() {
+                if res >= strs[i].len() || strs[i][res] != pre {
+                    return strs[0][0..res].iter().collect::<String>();
+                }
+            }
+
+            res+=1;
+        }
     }
 }

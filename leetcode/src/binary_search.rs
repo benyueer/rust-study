@@ -190,7 +190,7 @@ mod test {
      * 33-搜索旋转排序数组
      */
     pub fn search(nums: Vec<i32>, target: i32) -> i32 {
-        let (mut l, mut r) = (0, nums.len()-1);
+        let (mut l, mut r) = (0, nums.len() - 1);
 
         while l <= r {
             let mid = l + (r - l) / 2;
@@ -218,7 +218,7 @@ mod test {
             }
         }
 
-        -1  
+        -1
     }
 
     #[test]
@@ -232,5 +232,69 @@ mod test {
      */
     pub fn find_median_sorted_arrays(nums1: Vec<i32>, nums2: Vec<i32>) -> f64 {
         0.0
+    }
+
+    /**
+     * 162. 寻找峰值
+     */
+    pub fn find_peak_element(nums: Vec<i32>) -> i32 {
+        let (mut l, mut r) = (0, nums.len());
+
+        while l < r {
+            let mid = l + (r - l) / 2;
+
+            if nums[mid] < nums[mid + 1] {
+                l = mid;
+            } else {
+                r = mid;
+            }
+        }
+
+        l as i32
+    }
+
+    /**
+     * 74. 搜索二维矩阵
+     */
+    pub fn search_matrix(matrix: Vec<Vec<i32>>, target: i32) -> bool {
+        let (mut cl, mut cr) = (0, matrix.len());
+
+        while cl + 1 < cr {
+            let mid = cl + (cr - cl) / 2;
+
+            if matrix[mid][0] <= target {
+                cl = mid;
+            } else {
+                cr = mid;
+            }
+        }
+
+        let (mut rl, mut rr) = (0, matrix[cl].len());
+
+        while rl + 1 < rr {
+            let mid = rl + (rr - rl) / 2;
+
+            if matrix[cl][mid] <= target {
+                rl = mid;
+            } else {
+                rr = mid;
+            }
+        }
+
+        println!("{cl}  {rl}");
+
+        matrix[cl][rl] == target
+    }
+
+    #[test]
+    fn test_search_matrix() {
+        let matrix = vec![
+            vec![1, 3], 
+            // vec![1, 3, 5, 7], 
+            // vec![10, 11, 16, 20], 
+            // vec![23, 30, 34, 50]
+            ];
+        let res = search_matrix(matrix, 3);
+        println!("{res}");
     }
 }

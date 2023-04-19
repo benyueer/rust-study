@@ -18,6 +18,7 @@ mod test {
         }
     }
     use std::cell::RefCell;
+    use std::collections::HashMap;
     use std::rc::Rc;
 
     /**
@@ -530,6 +531,240 @@ mod test {
      */
     pub fn right_side_view(root: Option<Rc<RefCell<TreeNode>>>) -> Vec<i32> {
         let mut res = vec![];
+
+        res
+    }
+
+    /**
+     * 617. 合并二叉树
+     */
+    pub fn merge_trees(
+        root1: Option<Rc<RefCell<TreeNode>>>,
+        root2: Option<Rc<RefCell<TreeNode>>>,
+    ) -> Option<Rc<RefCell<TreeNode>>> {
+        // fn dfs(
+        //     root1: Option<Rc<RefCell<TreeNode>>>,
+        //     root2: Option<Rc<RefCell<TreeNode>>>,
+        // ) -> Option<Rc<RefCell<TreeNode>>> {
+        //     if root1.is_none() {
+        //         return root2;
+        //     } else if root2.is_none() {
+        //         return root1;
+        //     } else {
+        //         let mut r1 = root1.as_ref().unwrap().borrow_mut();
+        //         r1.val += root2.as_ref().unwrap().borrow_mut().val;
+        //         r1.left = dfs(
+        //             r1.left.to_owned(),
+        //             root2.as_ref().unwrap().borrow_mut().left.to_owned(),
+        //         );
+        //         r1.right = dfs(
+        //             r1.right.to_owned(),
+        //             root2.as_ref().unwrap().borrow_mut().right.to_owned(),
+        //         );
+        //         drop(r1);
+        //         return root1;
+        //     }
+        // }
+
+        // dfs(root1, root2)
+
+        match (root1, root2) {
+            (Some(t1), Some(t2)) => match (t1.borrow_mut(), t2.borrow_mut()) {
+                (mut t1, mut t2) => Some(Rc::new(RefCell::new(TreeNode {
+                    val: t1.val + t2.val,
+                    left: merge_trees(t1.left.take(), t2.left.take()),
+                    right: merge_trees(t1.right.take(), t2.right.take()),
+                }))),
+            },
+            (None, None) => None,
+            (some, None) => some,
+            (None, some) => some,
+        }
+    }
+
+    /**
+     * 543. 二叉树的直径
+     */
+    pub fn diameter_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        let mut res = 0;
+
+        fn dfs(root: Option<Rc<RefCell<TreeNode>>>, res: &mut i32) -> i32 {
+            if root.is_none() {
+                return 0;
+            }
+
+            let mut r_b = root.as_ref().unwrap().borrow_mut();
+            let l = dfs(r_b.left.take(), res);
+            let r = dfs(r_b.right.take(), res);
+
+            *res = *res.max(&mut (l + r + 1));
+            return l.max(r) + 1;
+        }
+
+        dfs(root, &mut res);
+
+        res - 1
+    }
+
+    /**
+     * 113. 路径总和 II
+     */
+    pub fn path_sum(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> Vec<Vec<i32>> {
+        let mut res = vec![];
+
+        fn dfs(
+            root: Option<Rc<RefCell<TreeNode>>>,
+            path: &mut Vec<i32>,
+            mut sum: i32,
+            res: &mut Vec<Vec<i32>>,
+            target_sum: i32,
+        ) {
+            if root.is_none() {
+                return;
+            };
+            let mut r = root.as_ref().unwrap().borrow_mut();
+            if r.left.is_none() && r.right.is_none() && sum + r.val == target_sum {
+                path.push(r.val);
+                res.push(path.to_vec());
+            };
+
+            path.push(r.val);
+            sum += r.val;
+            dfs(r.left.take(), &mut path.clone(), sum, res, target_sum);
+            dfs(r.right.take(), &mut path.clone(), sum, res, target_sum);
+        };
+
+        dfs(root, &mut [].to_vec(), 0, &mut res, target_sum);
+
+        res
+    }
+
+    /**
+     * 101. 对称二叉树
+     */
+    pub fn is_symmetric(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+        if root.is_none() {
+            return false;
+        }
+
+        fn is_same(l: Option<Rc<RefCell<TreeNode>>>, r: Option<Rc<RefCell<TreeNode>>>) -> bool {
+            if l.is_none() && r.is_none() {
+                return true;
+            }
+
+            if l.is_some() && r.is_some() {
+                if l.as_ref().unwrap().borrow().val != r.as_ref().unwrap().borrow().val {
+                    return false;
+                };
+
+                let mut l = l.as_ref().unwrap().borrow_mut();
+                let mut r = r.as_ref().unwrap().borrow_mut();
+
+                return is_same(l.left.take(), r.right.take())
+                    && is_same(l.right.take(), r.left.take());
+            }
+
+            return false;
+        }
+
+        let mut root = root.as_ref().unwrap().borrow_mut();
+
+        return is_same(root.left.take(), root.right.take());
+    }
+
+    /**
+     * 437. 路径总和 III
+     */
+    pub fn path_sum_2(root: Option<Rc<RefCell<TreeNode>>>, target_sum: i32) -> i32 {
+        let mut map = std::collections::HashMap::new();
+        map.insert(0, 1);
+
+        fn dfs(
+            root: &Option<Rc<RefCell<TreeNode>>>,
+            target_sum: i64,
+            mut cur_sum: i64,
+            map: &mut std::collections::HashMap<i64, i32>,
+        ) -> i32 {
+            if root.is_none() {
+                return 0;
+            }
+
+            let mut res = 0;
+            cur_sum += root.as_ref().unwrap().borrow().val as i64;
+
+            res += if let Some(&t) = map.get(&(cur_sum - target_sum)) {
+                t
+            } else {
+                0
+            };
+
+            *map.entry(cur_sum).or_insert(0) += 1;
+
+            res += dfs(
+                &root.as_ref().unwrap().borrow().left,
+                target_sum,
+                cur_sum,
+                map,
+            );
+            res += dfs(
+                &root.as_ref().unwrap().borrow().right,
+                target_sum,
+                cur_sum,
+                map,
+            );
+
+            *map.entry(cur_sum).or_insert(0) -= 1;
+
+            res
+        }
+
+        let mut root = root;
+
+        dfs(&root, target_sum as i64, 0, &mut map)
+    }
+
+    #[test]
+    fn test_path_sum_2() {
+        let root = Some(Rc::new(RefCell::new(TreeNode {
+            val: 1,
+            left: None,
+            right: None,
+        })));
+        let res = path_sum_2(root, 1);
+
+        println!("{res}");
+    }
+
+    /**
+     * 687. 最长同值路径
+     */
+    pub fn longest_univalue_path(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        fn dfs(root: &Option<Rc<RefCell<TreeNode>>>, res: &mut i32) -> i32 {
+            if let Some(r) = root {
+                let mut ans = 0;
+                let t = r.as_ref().borrow();
+                let (l, r) = (dfs(&t.left, res), dfs(&t.right, res));
+                let (mut l1, mut r1) = (0, 0);
+
+                if t.left.is_some() && t.left.as_ref().unwrap().borrow().val == t.val {
+                    l1 = l +1;
+                }
+
+                if t.right.is_some() && t.right.as_ref().unwrap().borrow().val == t.val {
+                    r1 = r + 1;
+                }
+
+                *res = (*res).max(l1 + r1);
+
+                return l1.max(r1);
+            } else {
+                0
+            }
+        }
+
+        let mut res = 0;
+
+        dfs(&root, &mut res);
 
         res
     }
