@@ -244,7 +244,7 @@ fn bar() -> impl Future<Output = u8>{
 ```rs
 async fn foo(x: &u8) -> u8 {*x}
 
-fn foo_expanded<'a'>(x: &'a u8) -> impl Future<Output = u8> + 'a {
+fn foo_expanded<'a>(x: &'a u8) -> impl Future<Output = u8> + 'a {
   async move {
     *x
   }
@@ -278,7 +278,7 @@ fn good() -> impl Future<Output = u8> {
 
 
 # Pin
-Pin 会保证指针指向的值不被移动
+Pin 会保证指针指向的值不被移动，在 async 块里安全的使用引用
 
 Unpin
 - 大多数类型如果被移动，不会造成问题，他们实现了 Unpin
