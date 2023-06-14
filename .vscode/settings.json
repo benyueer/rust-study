@@ -1,0 +1,9 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "./lesson20-design-patterns/Cargo.toml",
+    "./lesson20-design-patterns/Cargo.toml",
+    "./lesson20-design-patterns/Cargo.toml",
+    "./lesson20-design-patterns/Cargo.toml",
+    "./lesson20-design-patterns/Cargo.toml"
+  ]
+}
