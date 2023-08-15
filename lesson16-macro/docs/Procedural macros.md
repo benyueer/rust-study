@@ -1,29 +1,37 @@
 # Rust 中的过程宏
+
 过程宏（Procedural macros）是一种更为高级的宏。过程宏能够扩展 Rust 的现有语法。它接收任意输入并产生有效的 Rust 代码。
 过程宏接收一个TokenStream作为参数并返回另一个TokenStream。过程宏对输入的TokenStream进行操作并产生一个输出。有三种类型的过程宏：
+
 1. 属性式宏（Attribute-like macros）    用在结构体、字段、函数等地方，为其指定属性等功能。如标准库中的#[inline]、#[derive(...)]等都是属性宏。
 2. 派生宏（Derive macros）  用于结构体（struct）、枚举（enum）、联合（union）类型，可为其实现函数或特征（Trait）。
 3. 函数式宏（Function-like macros） 用法与普通的规则宏类似，但功能更加强大，可实现任意语法树层面的转换功能。
-接下来我们将会对它们进行详细讨论。
+   接下来我们将会对它们进行详细讨论。
 
 ## 属性式宏
+
 属性式宏能够让你创建一个自定义的属性，该属性将其自身关联一个项（item），并允许对该项进行操作。它也可以接收参数。
+
 ```rust
 #[some_attribute_macro(some_argument)]
 fn perform_task(){
 // some code
 }
 ```
-在上面的代码中，`some_attribute_macros`是一个属性宏，它对函数`perform_task`进行操作。
-为了编写一个属性式宏，我们先用`cargo new macro-demo --lib`来创建一个项目。创建完成后，修改`Cargo.toml`来通知 `cargo`，该项目将会创建过程宏。
+
+在上面的代码中，`some_attribute_macros`是一个属性宏，它对函数 `perform_task`进行操作。
+为了编写一个属性式宏，我们先用 `cargo new macro-demo --lib`来创建一个项目。创建完成后，修改 `Cargo.toml`来通知 `cargo`，该项目将会创建过程宏。
+
 ```toml
 # Cargo.toml
 [lib]
 proc-macro = true
 ```
-过程宏是公开的函数，接收`TokenStream`作为参数并返回另一个`TokenStream`。要想写一个过程宏，我们需要先实现能够解析`TokenStream`的解析器。`Rust` 社区已经有了很好的 `crate——syn`，用于解析`TokenStream`。
-`syn`提供了一个现成的 `Rust` 语法解析器能够用于解析`TokenStream`。你可以通过组合`syn`提供的底层解析器来解析你自己的语法、
-把`syn`和`quote`添加到`Cargo.toml`。
+
+过程宏是公开的函数，接收 `TokenStream`作为参数并返回另一个 `TokenStream`。要想写一个过程宏，我们需要先实现能够解析 `TokenStream`的解析器。`Rust` 社区已经有了很好的 `crate——syn`，用于解析 `TokenStream`。
+`syn`提供了一个现成的 `Rust` 语法解析器能够用于解析 `TokenStream`。你可以通过组合 `syn`提供的底层解析器来解析你自己的语法、
+把 `syn`和 `quote`添加到 `Cargo.toml`。
+
 ```toml
 # Cargo.toml
 [dependencies]
@@ -31,7 +39,8 @@ syn = {version="1.0.57",features=["full","fold"]}
 quote = "1.0.8"
 ```
 
-现在我们可以使用`proc_macro`在`lib.rs`中写一个属性式宏，`proc_macro`是编译器提供的用于写过程宏的一个 `crate`。对于一个过程宏 `crate`，除了过程宏外，不能导出其他任何东西，`crate` 中定义的过程宏不能在 `crate` 自身中使用。
+现在我们可以使用 `proc_macro`在 `lib.rs`中写一个属性式宏，`proc_macro`是编译器提供的用于写过程宏的一个 `crate`。对于一个过程宏 `crate`，除了过程宏外，不能导出其他任何东西，`crate` 中定义的过程宏不能在 `crate` 自身中使用。
+
 ```rust
 // lib.rs
 extern crate proc_macro;
@@ -46,7 +55,9 @@ pub fn my_custom_attribute(_metadata: TokenStream, _input: TokenStream) -> Token
     TokenStream::from(quote!{struct H{}})
 }
 ```
-为了测试我们添加的宏，我们需要创建一个测试。创建一个名为`tests`的文件夹然后在该文件夹添加文件`attribute_macro.rs`。在这个文件中，我们可以测试我们的属性式宏。
+
+为了测试我们添加的宏，我们需要创建一个测试。创建一个名为 `tests`的文件夹然后在该文件夹添加文件 `attribute_macro.rs`。在这个文件中，我们可以测试我们的属性式宏。
+
 ```rust
 // tests/attribute_macro.rs
 
@@ -62,12 +73,14 @@ fn test_macro(){
     let demo=H{};
 }
 ```
-使用命令`cargo test`来运行上面的测试。
 
-现在，我们理解了过程宏的基本使用，让我们用`syn`来对`TokenStream`进行一些高级操作和解析。
-为了理解`syn`是如何用来解析和操作的，让我们来看`syn Github` 仓库上的一个示例。这个示例创建了一个 Rust 宏，这个宏可以追踪变量值的变化。
+使用命令 `cargo test`来运行上面的测试。
+
+现在，我们理解了过程宏的基本使用，让我们用 `syn`来对 `TokenStream`进行一些高级操作和解析。
+为了理解 `syn`是如何用来解析和操作的，让我们来看 `syn Github` 仓库上的一个示例。这个示例创建了一个 Rust 宏，这个宏可以追踪变量值的变化。
 
 首先，我们需要去验证，我们的宏是如何操作与其所关联的代码的
+
 ```rust
 #[trace_vars(a)]
 fn do_something(){
@@ -76,9 +89,11 @@ fn do_something(){
   a=0;
 }
 ```
-`trace_vars`宏获取它所要追踪的变量名，然后每当输入变量（也就是`a`）的值发生变化时注入一条打印语句。这样它就可以追踪输入变量的值了。
+
+`trace_vars`宏获取它所要追踪的变量名，然后每当输入变量（也就是 `a`）的值发生变化时注入一条打印语句。这样它就可以追踪输入变量的值了。
 
 首先，解析属性式宏所关联的代码。`syn`提供了一个适用于 `Rust` 函数语法的内置解析器。`ItemFn`将会解析函数，并且如果语法无效，它会抛出一个错误。
+
 ```rust
 #[proc_macro_attribute]
 pub fn trace_vars(_metadata: TokenStream, input: TokenStream) -> TokenStream {
@@ -88,9 +103,10 @@ pub fn trace_vars(_metadata: TokenStream, input: TokenStream) -> TokenStream {
 }
 ```
 
-现在我们已经解析了`input`，让我们开始转移到`metadata`。对于`metadata`，没有适用的内置解析器，所以我们必须自己使用`syn`的`parse`模块写一个解析器。
+现在我们已经解析了 `input`，让我们开始转移到 `metadata`。对于 `metadata`，没有适用的内置解析器，所以我们必须自己使用 `syn`的 `parse`模块写一个解析器。
 
-要想`syn`能够工作，我们需要实现`syn`提供的`Parse trait`。`Punctuated`用于创建一个由,分割`Indent的vector`。
+要想 `syn`能够工作，我们需要实现 `syn`提供的 `Parse trait`。`Punctuated`用于创建一个由,分割 `Indent的vector`。
+
 ```rust
 struct Args{
     vars:HashSet<Ident>
@@ -107,7 +123,8 @@ impl Parse for Args{
 }
 ```
 
-一旦我们实现`Parse trait`，我们就可以使用`parse_macro_input`宏来解析`metadata`。
+一旦我们实现 `Parse trait`，我们就可以使用 `parse_macro_input`宏来解析 `metadata`。
+
 ```rust
 #[proc_macro_attribute]
 pub fn trace_vars(metadata: TokenStream, input: TokenStream) -> TokenStream {
@@ -117,7 +134,9 @@ pub fn trace_vars(metadata: TokenStream, input: TokenStream) -> TokenStream {
     TokenStream::from(quote!{fn dummy(){}})
 }
 ```
-现在，我们准备修改`input_fn`以便于在当变量值变化时添加`println!`。为了完成这项修改，我们需要过滤出有复制语句的代码，并在那行代码之后插入一个 `print` 语句。
+
+现在，我们准备修改 `input_fn`以便于在当变量值变化时添加 `println!`。为了完成这项修改，我们需要过滤出有复制语句的代码，并在那行代码之后插入一个 `print` 语句。
+
 ```rust
 impl Args {
     fn should_print_expr(&self, e: &Expr) -> bool {
@@ -181,9 +200,11 @@ impl Args {
     }
 }
 ```
+
 在上面的示例中，`quote`宏用于模板化和生成 Rust 代码。#用于注入变量的值。
 
-现在，我们将会在`input_fn`上进行 `DFS`，并插入 `print` 语句。`syn`提供了一个`Fold trait` 可以用来对任意`Item`实现 `DFS`。我们只需要修改与我们想要操作的 `token` 类型所对应的 `trait` 方法。
+现在，我们将会在 `input_fn`上进行 `DFS`，并插入 `print` 语句。`syn`提供了一个 `Fold trait` 可以用来对任意 `Item`实现 `DFS`。我们只需要修改与我们想要操作的 `token` 类型所对应的 `trait` 方法。
+
 ```rust
 impl Fold for Args {
     fn fold_expr(&mut self, e: Expr) -> Expr {
@@ -228,7 +249,9 @@ impl Fold for Args {
     }
 }
 ```
-现在我们可以使用`fold_item_fn`在我们解析的代码中注入 `print` 语句。
+
+现在我们可以使用 `fold_item_fn`在我们解析的代码中注入 `print` 语句。
+
 ```rust
 #[proc_macro_attribute]
 pub fn trace_var(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -242,13 +265,14 @@ pub fn trace_var(args: TokenStream, input: TokenStream) -> TokenStream {
     TokenStream::from(quote!(#output))
 }
 ```
-这个代码示例来自于syn 示例仓库，该仓库也是关于过程宏的一个非常好的学习资源。
 
+这个代码示例来自于syn 示例仓库，该仓库也是关于过程宏的一个非常好的学习资源。
 
 ## 派生宏
 
-## 类函数宏
+[戴维·托尔奈（David Tolnay，也就是syn和quote这两个库的作者）的教学项目proc-macro-workshop](https://github.com/benyueer/proc-macro-workshop/tree/master)
 
+## 类函数宏
 
 [过程宏](https://zhuanlan.zhihu.com/p/356427780)
 [派生宏辅助属性](https://www.linuxzen.com/notes/notes/20210616141500-rust_%E5%B1%9E%E6%80%A7%E5%AE%8F%E8%A7%A3%E6%9E%90/)
